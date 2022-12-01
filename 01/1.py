@@ -1,0 +1,1 @@
+print(max([sum([int(fruit) for fruit in elf.strip().split("\n")]) for elf in open("input.txt").read().split("\n\n")]))

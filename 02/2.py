@@ -1,7 +1,3 @@
-def chunk_input(filename="input.txt"):
-    with open(filename) as file:
-        return [chunk.strip() for chunk in file.read().strip().split("\n\n")]
-
 move_name_map = {"A": "R", "X": "R", "B": "P", "Y": "P", "C": "S", "Z": "S"} # Convert to R,P,S
 loses_to = {"R": "S", "P": "R", "S": "P"}  # Given a move, what does it beat?
 wins_over = {"R": "P", "P": "S", "S": "R"} # Given a move, what beats it

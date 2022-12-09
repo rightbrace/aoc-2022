@@ -1,55 +1,49 @@
+# Load input into a row/column list of strings
+def load_row_major():
+    with open("input.txt") as f:
+        return [[int(tree) for tree in line.strip()] for line in f.readlines()]
+    
+# Swap rows and columns, so indexing is now [col][row]
+# right becomes down (+col -> +row)
+# down becomes right (+row -> +col)
+def transpose_to_column_major(row_major):
+    return list(zip(*row_major))
 
-def sign(x):
-    if x == 0:
-        return 0
-    return x / abs(x)
+def slice_to_edge(row_major, col_major, row, col, dr, dc):
+    top = 0 if dr < 0 else row+1 # slice from [0 -> row] for upward scan, [row -> end] for downward
+    bottom = row if dr < 0 else len(row_major)
 
-# What will be the next position of the tail, based on the current head position?
-def tail_pos(hx, hy, tx, ty):
-    dx = hx-tx
-    dy = hy-ty
+    left = 0 if dc < 0 else col+1 # slice from [0 -> col] for leftward scan, [col -> end] for rightward
+    right = col if dc < 0 else len(col_major)
 
-    # No movement for on top, directly adjacent, or directly diagonal
-    if dx*dx + dy*dy <= 2:
-        return tx, ty
+    if dc != 0: # left/right
+        return [column[row] for column in col_major[left:right]]
+    elif dr != 0: # up/down
+        return [row[col] for row in row_major[top:bottom]]
+    else:
+        print("Shouldn't be here")
 
-    # Step one towards in all axes where there exists a seperation
-    # Assumes that H is never further than a "knight move" or two spaces
-    # horizontally/vertically/diagonally
-    return tx + sign(dx), ty + sign(dy)
+def max_or_empty(seq):
+    if len(seq) == 0: return -1
+    return max(seq)
 
-# Track head and tail positions
-hx, hy = 0, 0
-tx, ty = 0, 0
-tail_visited = set([(tx, ty)])
+cardinals = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
-def move(dx, dy):
-    global hx, hy, tx, ty
-    for i in range(abs(dx)):
-        hx += sign(dx)
-        tx, ty = tail_pos(hx, hy, tx, ty)
-        tail_visited.add((tx, ty))
-
-    for i in range(abs(dy)):
-        hy += sign(dy)
-        tx, ty = tail_pos(hx, hy, tx, ty)
-        tail_visited.add((tx, ty))
+def visible(row_major, col_major, row, col):
+    height = row_major[row][col]
+    for dir in cardinals:
+        if max_or_empty(slice_to_edge(row_major, col_major, row, col, *dir)) < height:
+            return True
+    return False
 
 
-# Parse input
-def follow_instruction(instruction):
-    match instruction.strip().split(" "):
-        case "R", x:
-            move(int(x), 0)
-        case "L", x:
-            move(-int(x), 0)
-        case "U", y:
-            move(0, int(y))
-        case "D", y:
-            move(0, -int(y))
+row_major = load_row_major()
+col_major = transpose_to_column_major(row_major)
 
-with open("input.txt") as f:
-    for instruction in f.readlines():
-        follow_instruction(instruction)
+count = 0
+for row in range(len(row_major)):
+    for col in range(len(col_major)):
+        if visible(row_major, col_major, row, col): 
+            count += 1
 
-print(len(tail_visited))
+print(count)
